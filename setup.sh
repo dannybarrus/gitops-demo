@@ -44,7 +44,18 @@ kubectl cluster-info --context "kind-$CLUSTER_NAME" >/dev/null
 echo ""
 echo "=== Installing ArgoCD (if not already installed) ==="
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# --server-side --force-conflicts, not a plain apply: ArgoCD's CRDs
+# (applicationsets.argoproj.io especially) are large enough that a
+# normal client-side apply tries to store the whole manifest in the
+# object's own last-applied-configuration annotation -- and that
+# pushes the object past Kubernetes' hard 262144-byte annotation
+# limit, failing with "metadata.annotations: Too long." Server-side
+# apply doesn't use that annotation at all, so the size problem never
+# comes up. --force-conflicts is needed alongside it on a fresh
+# install because client-side apply isn't involved yet to "own" any
+# fields for server-side apply to otherwise conflict with.
+kubectl apply -n argocd --server-side --force-conflicts \
+    -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 echo ""
 echo "=== Waiting for ArgoCD pods to become ready (this can take a couple of minutes) ==="
