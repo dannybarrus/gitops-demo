@@ -73,7 +73,7 @@ Replicas land back at 2 on their own.
 
 The whole thing runs in about two minutes once it's set up:
 
-1. `./setup.sh <repo-url>` (or skip, if the cluster's already running --
+1. `./setup.sh https://github.com/dannybarrus/gitops-demo.git` (or skip, if the cluster's already running --
    `kind get clusters` to check)
 2. `localhost:30080` -- what's running, what's in Git
 3. Edit the ConfigMap, push, refresh the page
