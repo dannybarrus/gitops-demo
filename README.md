@@ -15,10 +15,10 @@ times as needed.
 ## Setup
 
 ```bash
-git clone https://github.com/dannybarrus/gitops-demo.git
+git clone https://github.com/yourname/gitops-demo.git
 cd gitops-demo
 chmod +x setup.sh teardown.sh
-./setup.sh https://github.com/dannybarrus/gitops-demo.git
+./setup.sh https://github.com/yourname/gitops-demo.git
 ```
 
 One command, the repo URL as the only argument. Creates the cluster,
@@ -105,6 +105,13 @@ Worth running through once before showing it live, the same as any
 demo. Confirm the steps above actually work on the machine and repo
 being used, not just in theory.
 
+## How this compares to push-based CI/CD
+
+| | Deploy mechanism | Drift handling | Rollback |
+|---|---|---|---|
+| Push-based CI/CD | CI pushes the change | Detected, alerted on | Re-run the pipeline against a prior commit |
+| GitOps (this repo) | Reconciler pulls the change | Detected and corrected automatically | `git revert` + push, or ArgoCD's rollback with auto-sync paused |
+
 ## Notes worth keeping
 
 - **Push vs. pull**: a CI-push model needs deploy credentials reaching
@@ -118,6 +125,14 @@ being used, not just in theory.
   capability over an alerting-only setup: drift doesn't just get
   reported, it gets corrected, on every reconciliation pass, with
   nobody acting on anything.
+- **Rollback and full automation are mutually exclusive in the
+  moment.** ArgoCD's UI has a literal "History and Rollback" button,
+  but ArgoCD's own docs are explicit that rollback can't be performed
+  while automated sync is enabled -- using it pauses automation first,
+  performs the rollback, and leaves it to you to re-enable
+  afterward. `git revert` + push doesn't have this restriction, since
+  it changes what HEAD actually is rather than asking the reconciler
+  to stop reconciling.
 - **Terminal vs. UI show different layers of the same event.**
   `kubectl get pods --watch` is a direct watch against the API server
   -- every phase the kubelet reports (`Pending`, `ContainerCreating`,
