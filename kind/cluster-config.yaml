@@ -1,0 +1,14 @@
+# kind's nodes run as Docker containers -- a NodePort service inside
+# the cluster is NOT automatically reachable from your host machine
+# unless you explicitly map that port at cluster-creation time. This
+# is exactly the kind of thing that becomes an invisible, confusing
+# "why can't I reach localhost:30080" problem later if it isn't baked
+# in here, up front.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP

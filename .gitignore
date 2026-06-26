@@ -1,0 +1,12 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# Anything generated locally rather than meant to be committed
+*.log
+.env
+gitops-command-reference.md

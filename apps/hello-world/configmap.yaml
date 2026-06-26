@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-world-content
+  labels:
+    app: hello-world
+data:
+  index.html: |
+    <html>
+      <head><title>GitOps Demo</title></head>
+      <body style="font-family: sans-serif; text-align: center; margin-top: 100px;">
+        <h1>Hello, GitOps!</h1>
+        <h2>Version: v1</h2>
+        <p>This page's content lives entirely in Git. Change this ConfigMap,
+        push, and watch ArgoCD reconcile the cluster to match -- with no
+        kubectl command run against the cluster directly.</p>
+      </body>
+    </html>
