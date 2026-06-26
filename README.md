@@ -62,27 +62,48 @@ the page updates. Nothing was run against the cluster directly.
 
 **Drift and self-heal:**
 
+Start a watch in one terminal *before* triggering anything, so the
+whole lifecycle plays out live instead of comparing two static
+snapshots:
+
 ```bash
-kubectl scale deployment hello-world --replicas=5
-kubectl get deployment hello-world   # wait a few seconds first
+kubectl get pods -l app=hello-world --watch
 ```
 
-Replicas land back at 2 on their own.
+In a second terminal, trigger the drift:
+
+```bash
+kubectl scale deployment hello-world --replicas=5
+```
+
+Switch back to the first terminal -- 3 new pods appear, then get
+terminated and removed once ArgoCD notices the live state doesn't
+match Git. This runs through Kubernetes' watch API once a resource is
+already under ArgoCD's management, not the ~3-minute interval that
+governs polling Git for new commits -- self-heal typically kicks in
+within seconds. `Ctrl+C` once it settles back to 2.
+
+The ArgoCD UI, open at the same time on the Application's resource
+tree, makes this even more visible -- watch it flip `OutOfSync` back
+to `Synced` and the pod count shrink in real time. That's ArgoCD's own
+view of noticing and fixing it, not just the downstream effect.
 
 ## Demo sequence
 
 The whole thing runs in about two minutes once it's set up:
 
-1. `./setup.sh https://github.com/dannybarrus/gitops-demo.git` (or skip, if the cluster's already running --
+1. `./setup.sh <repo-url>` (or skip, if the cluster's already running --
    `kind get clusters` to check)
 2. `localhost:30080` -- what's running, what's in Git
 3. Edit the ConfigMap, push, refresh the page
-4. `kubectl scale --replicas=5`, wait, `kubectl get deployment` --
-   the self-heal moment
+4. Start `kubectl get pods -l app=hello-world --watch` in one pane,
+   the ArgoCD UI open on the Application's resource tree in another,
+   then `kubectl scale --replicas=5` in a third -- watch both views
+   catch and correct it live, rather than checking a before/after
 
 Worth running through once before showing it live, the same as any
-demo. Confirm the four steps above actually work on the machine and
-repo being used, not just in theory.
+demo. Confirm the steps above actually work on the machine and repo
+being used, not just in theory.
 
 ## Notes worth keeping
 
@@ -97,6 +118,17 @@ repo being used, not just in theory.
   capability over an alerting-only setup: drift doesn't just get
   reported, it gets corrected, on every reconciliation pass, with
   nobody acting on anything.
+- **Terminal vs. UI show different layers of the same event.**
+  `kubectl get pods --watch` is a direct watch against the API server
+  -- every phase the kubelet reports (`Pending`, `ContainerCreating`,
+  `Terminating`, even a brief `Error` if self-heal interrupts
+  something mid-startup), with minimal latency. The ArgoCD UI's
+  resource tree summarizes at the Application level instead -- in
+  sync or not, healthy or not -- not every container-runtime
+  transition underneath. Running both side by side during the
+  drift/self-heal sequence is more convincing than either alone,
+  precisely because neither one is "sanitized" -- they're just
+  genuinely different views of the same real event.
 
 ## Tearing down
 
