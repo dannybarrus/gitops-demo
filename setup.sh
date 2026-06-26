@@ -2,7 +2,7 @@
 #
 # Usage: ./setup.sh <your-github-repo-url>
 #
-# Example: ./setup.sh https://github.com/yourname/gitops-demo.git
+# Example: ./setup.sh https://github.com/dannybarrus/gitops-demo.git
 #
 # Spins up a local kind cluster, installs ArgoCD, and points it at
 # your own GitHub repo. Safe to re-run -- every step checks whether
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <your-github-repo-url>"
-    echo "Example: $0 https://github.com/yourname/gitops-demo.git"
+    echo "Example: $0 https://github.com/dannybarrus/gitops-demo.git"
     exit 1
 fi
 REPO_URL="$1"

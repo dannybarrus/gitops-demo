@@ -15,10 +15,10 @@ times as needed.
 ## Setup
 
 ```bash
-git clone https://github.com/yourname/gitops-demo.git
+git clone https://github.com/dannybarrus/gitops-demo.git
 cd gitops-demo
 chmod +x setup.sh teardown.sh
-./setup.sh https://github.com/yourname/gitops-demo.git
+./setup.sh https://github.com/dannybarrus/gitops-demo.git
 ```
 
 One command, the repo URL as the only argument. Creates the cluster,
