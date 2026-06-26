@@ -10,9 +10,9 @@ data:
       <head><title>GitOps Demo</title></head>
       <body style="font-family: sans-serif; text-align: center; margin-top: 100px;">
         <h1>Hello, GitOps!</h1>
-        <h2>Version: v1</h2>
+        <h2>Version: v2</h2>
         <p>This page's content lives entirely in Git. Change this ConfigMap,
         push, and watch ArgoCD reconcile the cluster to match -- with no
-        kubectl command run against the cluster directly.</p>
+        kubectl command run against the cluster directly. upgrading to v2</p>
       </body>
     </html>
