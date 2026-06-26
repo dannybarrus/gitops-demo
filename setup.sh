@@ -2,7 +2,7 @@
 #
 # Usage: ./setup.sh <your-github-repo-url>
 #
-# Example: ./setup.sh https://github.com/dannybarrus/gitops-demo.git
+# Example: ./setup.sh https://github.com/yourname/gitops-demo.git
 #
 # Spins up a local kind cluster, installs ArgoCD, and points it at
 # your own GitHub repo. Safe to re-run -- every step checks whether
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <your-github-repo-url>"
-    echo "Example: $0 https://github.com/dannybarrus/gitops-demo.git"
+    echo "Example: $0 https://github.com/yourname/gitops-demo.git"
     exit 1
 fi
 REPO_URL="$1"
@@ -59,7 +59,29 @@ kubectl apply -n argocd --server-side --force-conflicts \
 
 echo ""
 echo "=== Waiting for ArgoCD pods to become ready (this can take a couple of minutes) ==="
-kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+# kubectl wait only waits for an EXISTING resource's condition to
+# change -- it does not wait for a resource to be created in the first
+# place. If this ran even slightly before the Deployment controller
+# had scheduled any pods yet, it would fail immediately with "no
+# matching resources found" instead of retrying -- a real race
+# condition, not a sign anything is actually broken. Retrying the
+# whole wait in a loop handles both that race AND ordinary slow
+# scheduling uniformly.
+READY=0
+for i in $(seq 1 10); do
+    if kubectl wait --for=condition=Ready pods --all -n argocd --timeout=30s >/dev/null 2>&1; then
+        READY=1
+        break
+    fi
+    echo "  Not ready yet, retrying..."
+    sleep 5
+done
+if [ "$READY" -ne 1 ]; then
+    echo "ERROR: ArgoCD pods did not become ready in time."
+    echo "Check what's actually happening with: kubectl get pods -n argocd"
+    exit 1
+fi
+echo "  Ready."
 
 echo ""
 echo "=== Pointing ArgoCD at your repo ==="
